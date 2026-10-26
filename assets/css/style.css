@@ -139,14 +139,6 @@
   border-color: #28a745;
 }
 
-.hctt-form input.form-control.is-valid,
-.hctt-form input.form-control.is-invalid,
-.hctt-form textarea.form-control.is-valid,
-.hctt-form textarea.form-control.is-invalid {
-  background-image: none;
-  padding-right: 0.75rem;
-}
-
 .hctt-form select.form-control {
   height: calc(1.5em + 0.75rem + 2px);
 }
