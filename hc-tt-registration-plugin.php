@@ -559,7 +559,7 @@ function hctt_render_form_shortcode($atts, $content = '', $tag = '')
 
             <?php if (!$isSuccess) : ?>
                 <div class="hctt-form-container">
-                    <div class="p-3 pb-0">
+                    <div class="hctt-header p-3 pb-0">
                         <img class="hctt-header-image" src="<?php echo esc_url($assets['step1']); ?>" alt="">
                     </div>
 
@@ -674,7 +674,7 @@ function hctt_render_form_shortcode($atts, $content = '', $tag = '')
                             </div>
                         </div>
 
-                        <div class="form-group mt-3">
+                        <div class="form-group mt-3 hctt-org-types">
                             <label class="font-weight-bold d-block">*<?php esc_html_e('Organization Type', 'hc-tt-registration'); ?></label>
                             <?php foreach (hctt_get_registration_categories() as $cat) :
                                 $id = 'hctt-category-' . sanitize_title($cat);

@@ -1,6 +1,6 @@
 # Tommee Tippee Natural Start Healthcare Centres Registration
 
-WordPress plugin for the Tommee Tippee Natural Start healthcare centres registration form. It follows the HC DORB registration plugin, with a new title, organization types, and a required distribution confirmation.
+WordPress plugin for the Tommee Tippee Natural Start healthcare centres registration form.
 
 **Plugin file:** `hc-tt-registration-plugin.php`  
 **Version:** `1.0.0`  
@@ -39,18 +39,19 @@ WordPress plugin for the Tommee Tippee Natural Start healthcare centres registra
 
 ---
 
-## Form differences vs HC DORB Registration
+## Form
 
 - **Title:** Tommee Tippee Natural Start Healthcare Centres Registration
-- **Organization Type** replaces Category. Options: Community Centre, Doctor's Office, Doula Services, Family Health Team, Hospital, Medical Centre, Midwifery Practice, OBGYN Practice, Pediatric Practice, Pregnancy Centre, Public Health Unit, Trade Show, Other
-- **Added** required confirmation: the centre will distribute Tommee Tippee Feeding Bottle to expecting parents only and encourage QR registration
-- **Kept** from DORB: Yes / No for receiving samples of Diapers, Sudocrem, and wipes
+- **Organization Type:** Community Centre, Doctor's Office, Doula Services, Family Health Team, Hospital, Medical Centre, Midwifery Practice, OBGYN Practice, Pediatric Practice, Pregnancy Centre, Public Health Unit, Trade Show, Other
+- **Services Available** is required when Organization Type is Other
+- Required confirmation that the centre will distribute Tommee Tippee Feeding Bottle to expecting parents only and encourage QR registration
+- Yes / No for receiving samples of Diapers, Sudocrem, and wipes
 
 ---
 
 ## Admin
 
-- **TT Healthcare Registrations** menu — list, search, export CSV, view, edit, delete submissions
+- **Tommee Tippee HC Registrations** menu — list, search, export CSV, view, edit, delete submissions
 
 ---
 
