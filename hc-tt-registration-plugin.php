@@ -564,7 +564,10 @@ function hctt_render_form_shortcode($atts, $content = '', $tag = '')
                     </div>
 
                     <div class="hctt-topbar">
-                        <div class="hctt-title" style="text-transform: uppercase;"><?php esc_html_e('Tommee Tippee Natural Start Healthcare Centres Registration', 'hc-tt-registration'); ?></div>
+                        <div class="hctt-title">
+                            <span><?php esc_html_e('Tommee Tippee Natural Start', 'hc-tt-registration'); ?></span>
+                            <span><?php esc_html_e('Healthcare Centres Registration', 'hc-tt-registration'); ?></span>
+                        </div>
                     </div>
 
                     <form class="hctt-form px-3 pb-3 mt-3" method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" novalidate>
