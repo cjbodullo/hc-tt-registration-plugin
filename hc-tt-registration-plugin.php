@@ -54,6 +54,7 @@ function hctt_submissions_search_where_clause($wpdb, $search)
         'city',
         'province',
         'phone',
+        'fax',
         'postal_code',
         'category',
         'category_other',
@@ -93,11 +94,13 @@ function hctt_submissions_csv_columns()
         'department',
         'phone',
         'extension',
+        'fax',
         'address_1',
         'suite',
         'city',
         'province',
         'postal_code',
+        'bottle_quantity',
         'category',
         'category_other',
         'patients_type',
@@ -222,11 +225,13 @@ function hctt_maybe_install_table()
         department VARCHAR(250) NULL DEFAULT NULL,
         phone VARCHAR(40) NULL DEFAULT NULL,
         extension VARCHAR(250) NULL DEFAULT NULL,
+        fax VARCHAR(40) NULL DEFAULT NULL,
         address_1 VARCHAR(255) NULL DEFAULT NULL,
         suite VARCHAR(120) NULL DEFAULT NULL,
         city VARCHAR(120) NULL DEFAULT NULL,
         province VARCHAR(10) NULL DEFAULT NULL,
         postal_code VARCHAR(25) NULL DEFAULT NULL,
+        bottle_quantity VARCHAR(20) NULL DEFAULT NULL,
         category VARCHAR(120) NULL DEFAULT NULL,
         category_other VARCHAR(255) NULL DEFAULT NULL,
         patients_type VARCHAR(40) NULL DEFAULT NULL,
@@ -320,12 +325,14 @@ function hctt_validate_submission_row(array $input, $require_confirm = true)
     $department = sanitize_text_field($input['department'] ?? '');
     $phone = sanitize_text_field($input['phone'] ?? '');
     $extension = sanitize_text_field($input['extension'] ?? '');
+    $fax = sanitize_text_field($input['fax'] ?? '');
     $address1 = sanitize_text_field($input['address_1'] ?? '');
     $suite = sanitize_text_field($input['suite'] ?? '');
     $city = sanitize_text_field($input['city'] ?? '');
     $province = sanitize_text_field($input['province'] ?? '');
     $postalRaw = strtoupper(preg_replace('/\s+/', ' ', trim((string) ($input['postal_code'] ?? ''))));
     $postal = $postalRaw;
+    $bottleQuantity = sanitize_text_field($input['bottle_quantity'] ?? '');
     $category = sanitize_text_field($input['category'] ?? '');
     $categoryOther = sanitize_text_field((string) ($input['category_other'] ?? ''));
     $patientsType = sanitize_text_field($input['patients_type'] ?? '');
@@ -356,7 +363,8 @@ function hctt_validate_submission_row(array $input, $require_confirm = true)
         $organization === '' || $first === '' || $last === '' || !is_email($email) ||
         $job === '' || $department === '' || $phone === '' || $address1 === '' ||
         $city === '' || $province === '' || $postal === '' || $category === '' || $patientsType === '' ||
-        $weeklyExpecting === '' || !in_array($receivePatientSamples, ['Yes', 'No'], true)
+        $weeklyExpecting === '' || !in_array($receivePatientSamples, ['Yes', 'No'], true) ||
+        !in_array($bottleQuantity, ['12', '24'], true)
     ) {
         return new WP_Error('hctt_required', __('Please complete all required fields.', 'hc-tt-registration'));
     }
@@ -372,6 +380,11 @@ function hctt_validate_submission_row(array $input, $require_confirm = true)
     $digits = preg_replace('/\D/', '', $phone);
     if (strlen($digits) !== 10) {
         return new WP_Error('hctt_phone', __('Please enter a valid 10-digit phone number.', 'hc-tt-registration'));
+    }
+
+    $faxDigits = preg_replace('/\D/', '', $fax);
+    if ($fax !== '' && strlen($faxDigits) !== 10) {
+        return new WP_Error('hctt_fax', __('Please enter a valid 10-digit fax number.', 'hc-tt-registration'));
     }
 
     if ($require_confirm && !$confirmDistribution) {
@@ -392,11 +405,13 @@ function hctt_validate_submission_row(array $input, $require_confirm = true)
         'department' => $department,
         'phone' => $phone,
         'extension' => $extension === '' ? null : $extension,
+        'fax' => $fax === '' ? null : $fax,
         'address_1' => $address1,
         'suite' => $suite === '' ? null : $suite,
         'city' => $city,
         'province' => $province,
         'postal_code' => $postal,
+        'bottle_quantity' => $bottleQuantity,
         'category' => $category,
         'category_other' => $categoryOther === '' ? null : $categoryOther,
         'patients_type' => $patientsType,
@@ -617,14 +632,21 @@ function hctt_render_form_shortcode($atts, $content = '', $tag = '')
                             <input type="text" class="form-control" id="hctt-department" name="department" required>
                         </div>
                         <div class="row">
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <div class="form-group">
                                     <label class="font-weight-bold d-block" for="hctt-phone">*<?php esc_html_e('Telephone Number', 'hc-tt-registration'); ?></label>
                                     <input type="text" class="form-control" id="hctt-phone" name="phone" required>
                                     <div class="invalid-feedback" id="hctt-phoneError" style="display:none;"><?php esc_html_e('Please enter a valid phone number', 'hc-tt-registration'); ?></div>
                                 </div>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label class="font-weight-bold d-block" for="hctt-fax"><?php esc_html_e('Fax Number', 'hc-tt-registration'); ?></label>
+                                    <input type="text" class="form-control" id="hctt-fax" name="fax">
+                                    <div class="invalid-feedback" id="hctt-faxError" style="display:none;"><?php esc_html_e('Please enter a valid fax number', 'hc-tt-registration'); ?></div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
                                 <div class="form-group">
                                     <label class="font-weight-bold d-block" for="hctt-extension"><?php esc_html_e('Extension', 'hc-tt-registration'); ?></label>
                                     <input type="text" class="form-control" id="hctt-extension" name="extension">
@@ -721,6 +743,17 @@ function hctt_render_form_shortcode($atts, $content = '', $tag = '')
                                     <label class="form-check-label" for="hctt-receive-no"><?php esc_html_e('No', 'hc-tt-registration'); ?></label>
                                 </div>
                             </div>
+                            <div class="form-group">
+                                <label class="font-weight-bold d-block">*<?php esc_html_e('How many Tommee Tippee Bottles would you like', 'hc-tt-registration'); ?></label>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="bottleQuantity" id="hctt-bottles-12" value="12" required>
+                                    <label class="form-check-label" for="hctt-bottles-12"><?php esc_html_e('12 bottles', 'hc-tt-registration'); ?></label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="bottleQuantity" id="hctt-bottles-24" value="24" required>
+                                    <label class="form-check-label" for="hctt-bottles-24"><?php esc_html_e('24 bottles', 'hc-tt-registration'); ?></label>
+                                </div>
+                            </div>
                             <div class="form-group hctt-confirm-check">
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" id="hctt-confirmDistribution" name="confirmDistribution" value="1" required>
@@ -788,6 +821,14 @@ function hctt_render_form_shortcode($atts, $content = '', $tag = '')
                         });
                     }
 
+                    var fax = document.getElementById('hctt-fax');
+                    if (fax) {
+                        fax.addEventListener('input', function () {
+                            fax.value = formatPhone(fax.value);
+                            syncFieldVisual(fax, false);
+                        });
+                    }
+
                     function hideErr(id) {
                         var n = document.getElementById(id);
                         if (n) n.style.display = 'none';
@@ -813,7 +854,7 @@ function hctt_render_form_shortcode($atts, $content = '', $tag = '')
                             var esc = el.name.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
                             var radios = form.querySelectorAll('input[type="radio"][name="' + esc + '"]');
                             if (!radios.length) return;
-                            var tracked = ['category', 'patientsType', 'receivePatientSamples'];
+                            var tracked = ['category', 'patientsType', 'receivePatientSamples', 'bottleQuantity'];
                             var req = false;
                             radios.forEach(function (r) { if (r.required) req = true; });
                             if (!req && tracked.indexOf(el.name) === -1) return;
@@ -843,6 +884,7 @@ function hctt_render_form_shortcode($atts, $content = '', $tag = '')
                             else el.classList.remove('is-invalid');
                             if (id === 'hctt-email') hideErr('hctt-emailError');
                             if (id === 'hctt-phone') hideErr('hctt-phoneError');
+                            if (id === 'hctt-fax') hideErr('hctt-faxError');
                             if (id === 'hctt-extension') hideErr('hctt-extensionError');
                             if (id === 'hctt-postalCode') hideErr('hctt-postalCodeError');
                             if (id === 'hctt-weeklyExpecting') hideErr('hctt-weeklyExpectingError');
@@ -856,6 +898,9 @@ function hctt_render_form_shortcode($atts, $content = '', $tag = '')
                         } else if (id === 'hctt-phone') {
                             ok = /^\(\d{3}\) \d{3}-\d{4}$/.test(v);
                             if (!ok) showErr('hctt-phoneError'); else hideErr('hctt-phoneError');
+                        } else if (id === 'hctt-fax') {
+                            ok = v === '' || /^\(\d{3}\) \d{3}-\d{4}$/.test(v);
+                            if (!ok) showErr('hctt-faxError'); else hideErr('hctt-faxError');
                         } else if (id === 'hctt-extension') {
                             ok = v === '' || /^[0-9]+$/.test(v);
                             if (!ok) showErr('hctt-extensionError'); else hideErr('hctt-extensionError');
@@ -943,6 +988,19 @@ function hctt_render_form_shortcode($atts, $content = '', $tag = '')
                             if (phoneErr) phoneErr.style.display = 'none';
                         }
 
+                        var faxEl = document.getElementById('hctt-fax');
+                        var faxErr = document.getElementById('hctt-faxError');
+                        if (faxEl && faxEl.value !== '' && !/^\(\d{3}\) \d{3}-\d{4}$/.test(faxEl.value || '')) {
+                            isValid = false;
+                            faxEl.classList.add('is-invalid');
+                            faxEl.classList.remove('is-valid');
+                            if (faxErr) faxErr.style.display = 'block';
+                        } else if (faxEl) {
+                            faxEl.classList.remove('is-invalid');
+                            faxEl.classList.add('is-valid');
+                            if (faxErr) faxErr.style.display = 'none';
+                        }
+
                         var extEl = document.getElementById('hctt-extension');
                         var extErr = document.getElementById('hctt-extensionError');
                         if (extEl && extEl.value !== '' && !/^[0-9]+$/.test(extEl.value)) {
@@ -955,6 +1013,13 @@ function hctt_render_form_shortcode($atts, $content = '', $tag = '')
                             extEl.classList.add('is-valid');
                             if (extErr) extErr.style.display = 'none';
                         }
+
+                        ['hctt-suite', 'hctt-comments'].forEach(function (fieldId) {
+                            var optionalEl = document.getElementById(fieldId);
+                            if (!optionalEl) return;
+                            optionalEl.classList.remove('is-invalid');
+                            optionalEl.classList.add('is-valid');
+                        });
 
                         var postal = document.getElementById('hctt-postalCode');
                         var postalErr = document.getElementById('hctt-postalCodeError');
@@ -1053,11 +1118,13 @@ function hctt_handle_submission()
         'department' => wp_unslash($_POST['department'] ?? ''),
         'phone' => wp_unslash($_POST['phone'] ?? ''),
         'extension' => wp_unslash($_POST['extension'] ?? ''),
+        'fax' => wp_unslash($_POST['fax'] ?? ''),
         'address_1' => wp_unslash($_POST['address1'] ?? ''),
         'suite' => wp_unslash($_POST['suite'] ?? ''),
         'city' => wp_unslash($_POST['city'] ?? ''),
         'province' => wp_unslash($_POST['province'] ?? ''),
         'postal_code' => wp_unslash($_POST['postalCode'] ?? ''),
+        'bottle_quantity' => wp_unslash($_POST['bottleQuantity'] ?? ''),
         'category' => wp_unslash($_POST['category'] ?? ''),
         'category_other' => wp_unslash($_POST['categoryOther'] ?? ''),
         'patients_type' => wp_unslash($_POST['patientsType'] ?? ''),
@@ -1079,9 +1146,9 @@ function hctt_handle_submission()
         $table,
         $validated,
         [
-            '%s', // healthcare_id
-            '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s',
-            '%s', '%s', '%s', '%d', '%s', '%s',
+            '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s',
+            '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s',
+            '%s', '%d', '%s', '%s',
         ]
     );
 
@@ -1094,16 +1161,18 @@ function hctt_handle_submission()
     if ($notify !== '' && is_email($notify) && apply_filters('hctt_send_notification_email', true, $wpdb->insert_id)) {
         $subject = sprintf('[%s] New Tommee Tippee Healthcare Registration', wp_specialchars_decode(get_bloginfo('name'), ENT_QUOTES));
         $body = sprintf(
-            "Organization: %s\nContact: %s %s\nEmail: %s\nPhone: %s\nAddress: %s, %s, %s %s\nOrganization Type: %s\nServices Available: %s\nPatients: %s\nExpecting parents (weekly): %s\nReceive patient samples: %s\nConfirmed distribution: %s\nComments: %s\n",
+            "Organization: %s\nContact: %s %s\nEmail: %s\nPhone: %s\nFax: %s\nAddress: %s, %s, %s %s\nTommee Tippee Bottles: %s\nOrganization Type: %s\nServices Available: %s\nPatients: %s\nExpecting parents (weekly): %s\nReceive patient samples: %s\nConfirmed distribution: %s\nComments: %s\n",
             $validated['organization_name'],
             $validated['contact_first_name'],
             $validated['contact_last_name'],
             $validated['email'],
             $validated['phone'],
+            isset($validated['fax']) && $validated['fax'] !== null ? $validated['fax'] : '',
             $validated['address_1'],
             $validated['city'],
             $validated['province'],
             $validated['postal_code'],
+            $validated['bottle_quantity'] === '12' ? '12 bottles' : '24 bottles',
             $validated['category'],
             isset($validated['category_other']) && $validated['category_other'] !== null ? $validated['category_other'] : '',
             $validated['patients_type'],
@@ -1424,6 +1493,7 @@ function hctt_render_submission_detail($id)
         'department' => __('Department', 'hc-tt-registration'),
         'phone' => __('Phone', 'hc-tt-registration'),
         'extension' => __('Extension', 'hc-tt-registration'),
+        'fax' => __('Fax Number', 'hc-tt-registration'),
         'address_1' => __('Address', 'hc-tt-registration'),
         'suite' => __('Suite', 'hc-tt-registration'),
         'city' => __('City', 'hc-tt-registration'),
@@ -1434,6 +1504,7 @@ function hctt_render_submission_detail($id)
         'patients_type' => __('Patients type', 'hc-tt-registration'),
         'weekly_expecting_parents' => __('Expecting parents (weekly)', 'hc-tt-registration'),
         'receive_patient_samples' => __('Receive patient samples (Diapers, Sudocrem, wipes)', 'hc-tt-registration'),
+        'bottle_quantity' => __('Tommee Tippee Bottles', 'hc-tt-registration'),
         'confirmed_distribution' => __('Confirmed distribution', 'hc-tt-registration'),
         'comments' => __('Comments', 'hc-tt-registration'),
         'created_at' => __('Submitted', 'hc-tt-registration'),
@@ -1460,6 +1531,8 @@ function hctt_render_submission_detail($id)
                             echo $ts ? esc_html(wp_date(get_option('date_format') . ' ' . get_option('time_format'), $ts, hctt_created_at_timezone())) : esc_html($val);
                         } elseif ($key === 'confirmed_distribution') {
                             echo ((int) $val === 1) ? esc_html__('Yes', 'hc-tt-registration') : esc_html__('No', 'hc-tt-registration');
+                        } elseif ($key === 'bottle_quantity') {
+                            echo $val === '12' ? esc_html__('12 bottles', 'hc-tt-registration') : ($val === '24' ? esc_html__('24 bottles', 'hc-tt-registration') : ($val !== '' ? esc_html($val) : '—'));
                         } elseif ($key === 'comments' && $val !== '') {
                             echo nl2br(esc_html($val));
                         } else {
@@ -1582,6 +1655,10 @@ function hctt_render_submission_edit($id)
                     <td><input name="extension" id="hctt-adm-ext" type="text" class="regular-text" value="<?php echo esc_attr($v('extension')); ?>"></td>
                 </tr>
                 <tr>
+                    <th scope="row"><label for="hctt-adm-fax"><?php esc_html_e('Fax Number', 'hc-tt-registration'); ?></label></th>
+                    <td><input name="fax" id="hctt-adm-fax" type="text" class="regular-text" value="<?php echo esc_attr($v('fax')); ?>"></td>
+                </tr>
+                <tr>
                     <th scope="row"><label for="hctt-adm-a1"><?php esc_html_e('Address', 'hc-tt-registration'); ?></label></th>
                     <td><input name="address_1" id="hctt-adm-a1" type="text" class="regular-text" value="<?php echo esc_attr($v('address_1')); ?>" required></td>
                 </tr>
@@ -1644,6 +1721,17 @@ function hctt_render_submission_edit($id)
                         <label><input type="radio" name="receive_patient_samples" value="Yes" <?php checked($v('receive_patient_samples'), 'Yes'); ?> required> <?php esc_html_e('Yes', 'hc-tt-registration'); ?></label>
                         &nbsp;&nbsp;
                         <label><input type="radio" name="receive_patient_samples" value="No" <?php checked($v('receive_patient_samples'), 'No'); ?> required> <?php esc_html_e('No', 'hc-tt-registration'); ?></label>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><?php esc_html_e('How many Tommee Tippee Bottles would you like', 'hc-tt-registration'); ?></th>
+                    <td>
+                        <label style="display:inline-block;margin-right:12px;">
+                            <input type="radio" name="bottle_quantity" value="12" <?php checked($v('bottle_quantity'), '12'); ?> required> <?php esc_html_e('12 bottles', 'hc-tt-registration'); ?>
+                        </label>
+                        <label style="display:inline-block;margin-right:12px;">
+                            <input type="radio" name="bottle_quantity" value="24" <?php checked($v('bottle_quantity'), '24'); ?> required> <?php esc_html_e('24 bottles', 'hc-tt-registration'); ?>
+                        </label>
                     </td>
                 </tr>
                 <tr>
@@ -1714,11 +1802,13 @@ function hctt_handle_admin_save_submission()
         'department' => wp_unslash($_POST['department'] ?? ''),
         'phone' => wp_unslash($_POST['phone'] ?? ''),
         'extension' => wp_unslash($_POST['extension'] ?? ''),
+        'fax' => wp_unslash($_POST['fax'] ?? ''),
         'address_1' => wp_unslash($_POST['address_1'] ?? ''),
         'suite' => wp_unslash($_POST['suite'] ?? ''),
         'city' => wp_unslash($_POST['city'] ?? ''),
         'province' => wp_unslash($_POST['province'] ?? ''),
         'postal_code' => wp_unslash($_POST['postal_code'] ?? ''),
+        'bottle_quantity' => wp_unslash($_POST['bottle_quantity'] ?? ''),
         'category' => wp_unslash($_POST['category'] ?? ''),
         'category_other' => wp_unslash($_POST['category_other'] ?? ''),
         'patients_type' => wp_unslash($_POST['patients_type'] ?? ''),
@@ -1753,9 +1843,9 @@ function hctt_handle_admin_save_submission()
         $validated,
         ['id' => $id],
         [
-            '%s', // healthcare_id
-            '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s',
-            '%s', '%s', '%s', '%d', '%s',
+            '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s',
+            '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s',
+            '%s', '%d', '%s',
         ],
         ['%d']
     );
