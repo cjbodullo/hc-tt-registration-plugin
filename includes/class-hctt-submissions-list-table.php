@@ -223,16 +223,13 @@ class HCTT_Submissions_List_Table extends WP_List_Table
             ),
             'hctt_delete_submission_' . $id
         );
-        $confirm = esc_js(__('Delete this submission? This cannot be undone.', 'hc-tt-registration'));
-
         return sprintf(
-            '<a class="button button-small" href="%1$s">%2$s</a> <a class="button button-small" href="%3$s">%4$s</a> <a class="button button-small button-link-delete" href="%5$s" onclick="return window.confirm(%6$s);">%7$s</a>',
+            '<a class="button button-small" href="%1$s">%2$s</a> <a class="button button-small" href="%3$s">%4$s</a> <a class="button button-small button-link-delete hctt-delete-link" href="%5$s">%6$s</a>',
             esc_url($viewUrl),
             esc_html__('View', 'hc-tt-registration'),
             esc_url($editUrl),
             esc_html__('Edit', 'hc-tt-registration'),
             esc_url($deleteUrl),
-            wp_json_encode($confirm),
             esc_html__('Delete', 'hc-tt-registration')
         );
     }

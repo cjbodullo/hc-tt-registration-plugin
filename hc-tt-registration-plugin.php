@@ -1125,8 +1125,8 @@ add_action('admin_post_hctt_submit_registration', 'hctt_handle_submission');
 function hctt_register_admin_menu()
 {
     add_menu_page(
-        __('Tommee Tippee HC Registrations', 'hc-tt-registration'),
-        __('Tommee Tippee HC Registrations', 'hc-tt-registration'),
+        __('HC Tommee Tippee Registrations', 'hc-tt-registration'),
+        __('HC Tommee Tippee Registrations', 'hc-tt-registration'),
         'manage_options',
         HCTT_ADMIN_PAGE_SLUG,
         'hctt_render_admin_submissions_page',
@@ -1146,9 +1146,88 @@ add_action('admin_head', static function () {
         /* Keep the "No." column compact on submissions list table. */
         .wp-list-table .column-hctt_no { width: 30px; }
         .wp-list-table .column-hctt_no strong { display: inline-block; min-width: 0; }
+        .hctt-modal[hidden] { display: none; }
+        .hctt-modal { position: fixed; inset: 0; z-index: 100000; }
+        .hctt-modal__backdrop { position: absolute; inset: 0; background: rgba(0, 0, 0, 0.6); }
+        .hctt-modal__dialog {
+            position: relative;
+            z-index: 1;
+            width: min(420px, calc(100% - 32px));
+            margin: 12vh auto 0;
+            background: #fff;
+            border-radius: 4px;
+            padding: 20px 24px 16px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+        }
+        .hctt-modal__dialog h2 { margin: 0 0 8px; font-size: 18px; line-height: 1.3; }
+        .hctt-modal__dialog p { margin: 0; }
+        .hctt-modal__actions { display: flex; justify-content: flex-end; gap: 8px; margin: 16px 0 0; }
+        .hctt-modal__confirm.button-primary { background: #b32d2e; border-color: #b32d2e; }
+        .hctt-modal__confirm.button-primary:hover,
+        .hctt-modal__confirm.button-primary:focus { background: #8a2424; border-color: #8a2424; color: #fff; }
     </style>
     <?php
 });
+
+function hctt_render_delete_confirm_modal()
+{
+    if (empty($_GET['page']) || sanitize_key(wp_unslash((string) $_GET['page'])) !== HCTT_ADMIN_PAGE_SLUG) {
+        return;
+    }
+    ?>
+    <div id="hctt-delete-modal" class="hctt-modal" hidden>
+        <div class="hctt-modal__backdrop" data-hctt-modal-close></div>
+        <div class="hctt-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="hctt-delete-modal-title">
+            <h2 id="hctt-delete-modal-title"><?php esc_html_e('Delete this submission?', 'hc-tt-registration'); ?></h2>
+            <p><?php esc_html_e('This cannot be undone.', 'hc-tt-registration'); ?></p>
+            <p class="hctt-modal__actions">
+                <button type="button" class="button" data-hctt-modal-close><?php esc_html_e('Cancel', 'hc-tt-registration'); ?></button>
+                <a class="button button-primary hctt-modal__confirm" href="#"><?php esc_html_e('Delete', 'hc-tt-registration'); ?></a>
+            </p>
+        </div>
+    </div>
+    <script>
+    (function () {
+        var modal = document.getElementById('hctt-delete-modal');
+        if (!modal) return;
+        var confirmLink = modal.querySelector('.hctt-modal__confirm');
+        var lastFocus = null;
+
+        function openModal(href) {
+            lastFocus = document.activeElement;
+            confirmLink.setAttribute('href', href);
+            modal.hidden = false;
+            confirmLink.focus();
+        }
+
+        function closeModal() {
+            modal.hidden = true;
+            confirmLink.setAttribute('href', '#');
+            if (lastFocus && typeof lastFocus.focus === 'function') lastFocus.focus();
+        }
+
+        document.addEventListener('click', function (event) {
+            var link = event.target.closest('.hctt-delete-link');
+            if (link) {
+                event.preventDefault();
+                openModal(link.href);
+                return;
+            }
+            if (event.target.closest('[data-hctt-modal-close]')) {
+                event.preventDefault();
+                closeModal();
+            }
+        });
+
+        document.addEventListener('keydown', function (event) {
+            if (!modal.hidden && event.key === 'Escape') closeModal();
+        });
+    })();
+    </script>
+    <?php
+}
+
+add_action('admin_footer', 'hctt_render_delete_confirm_modal');
 
 function hctt_maybe_export_submissions_csv()
 {
@@ -1331,7 +1410,6 @@ function hctt_render_submission_detail($id)
         ),
         'hctt_delete_submission_' . (int) $row->id
     );
-    $confirm_js = wp_json_encode(__('Delete this submission? This cannot be undone.', 'hc-tt-registration'));
 
     $fields = [
         'healthcare_id' => __('Healthcare ID', 'hc-tt-registration'),
@@ -1392,7 +1470,7 @@ function hctt_render_submission_detail($id)
         </table>
         <p class="submit" style="max-width:920px;">
             <a class="button button-primary" href="<?php echo esc_url($edit_url); ?>"><?php esc_html_e('Edit', 'hc-tt-registration'); ?></a>
-            <a class="button button-link-delete" href="<?php echo esc_url($delete_url); ?>" onclick="return window.confirm(<?php echo $confirm_js; ?>);"><?php esc_html_e('Delete', 'hc-tt-registration'); ?></a>
+            <a class="button button-link-delete hctt-delete-link" href="<?php echo esc_url($delete_url); ?>"><?php esc_html_e('Delete', 'hc-tt-registration'); ?></a>
         </p>
     </div>
     <?php
