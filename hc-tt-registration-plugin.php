@@ -641,16 +641,16 @@ function hctt_render_form_shortcode($atts, $content = '', $tag = '')
                             </div>
                             <div class="col-md-4">
                                 <div class="form-group">
-                                    <label class="font-weight-bold d-block" for="hctt-fax"><?php esc_html_e('Fax Number', 'hc-tt-registration'); ?></label>
-                                    <input type="text" class="form-control" id="hctt-fax" name="fax">
-                                    <div class="invalid-feedback" id="hctt-faxError" style="display:none;"><?php esc_html_e('Please enter a valid fax number', 'hc-tt-registration'); ?></div>
+                                    <label class="font-weight-bold d-block" for="hctt-extension"><?php esc_html_e('Extension', 'hc-tt-registration'); ?></label>
+                                    <input type="text" class="form-control" id="hctt-extension" name="extension">
+                                    <div class="invalid-feedback" id="hctt-extensionError" style="display:none;"><?php esc_html_e('Please enter numbers only', 'hc-tt-registration'); ?></div>
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="form-group">
-                                    <label class="font-weight-bold d-block" for="hctt-extension"><?php esc_html_e('Extension', 'hc-tt-registration'); ?></label>
-                                    <input type="text" class="form-control" id="hctt-extension" name="extension">
-                                    <div class="invalid-feedback" id="hctt-extensionError" style="display:none;"><?php esc_html_e('Please enter numbers only', 'hc-tt-registration'); ?></div>
+                                    <label class="font-weight-bold d-block" for="hctt-fax"><?php esc_html_e('Fax Number', 'hc-tt-registration'); ?></label>
+                                    <input type="text" class="form-control" id="hctt-fax" name="fax">
+                                    <div class="invalid-feedback" id="hctt-faxError" style="display:none;"><?php esc_html_e('Please enter a valid fax number', 'hc-tt-registration'); ?></div>
                                 </div>
                             </div>
                         </div>
@@ -757,7 +757,7 @@ function hctt_render_form_shortcode($atts, $content = '', $tag = '')
                             <div class="form-group hctt-confirm-check">
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" id="hctt-confirmDistribution" name="confirmDistribution" value="1" required>
-                                    <label class="form-check-label" for="hctt-confirmDistribution"><?php esc_html_e('I confirm that our healthcare centre will distribute Tommee Tippee Feeding Bottle to expecting parents only, and we will kindly encourage parents to register using the QR code provided on the package to access additional support and resources.', 'hc-tt-registration'); ?></label>
+                                    <label class="form-check-label" for="hctt-confirmDistribution"><?php esc_html_e('* I confirm that our healthcare centre will distribute Tommee Tippee Feeding Bottle to expecting parents only, and we will kindly encourage parents to register using the QR code provided on the package to access additional support and resources.', 'hc-tt-registration'); ?></label>
                                 </div>
                             </div>
                             <div class="form-group">

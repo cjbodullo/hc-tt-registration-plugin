@@ -779,14 +779,20 @@
   outline-offset: 1px;
 }
 
-.hctt-form .hctt-confirm-check .form-check-label,
-.hctt-form .hctt-confirm-check input[type='checkbox'].form-check-input.is-invalid + .form-check-label,
-.hctt-form .hctt-confirm-check input[type='checkbox'].form-check-input.is-valid + .form-check-label,
-.hctt-form .hctt-confirm-check input[type='checkbox'].form-check-input:checked + .form-check-label {
+.hctt-form .hctt-confirm-check .form-check-label {
   font-size: 1rem;
   line-height: 1.75;
   color: #616a75;
   font-weight: 400;
   cursor: pointer;
+}
+
+.hctt-form .hctt-confirm-check input[type='checkbox'].form-check-input.is-invalid + .form-check-label {
+  color: #dc3545;
+}
+
+.hctt-form .hctt-confirm-check input[type='checkbox'].form-check-input.is-valid + .form-check-label,
+.hctt-form .hctt-confirm-check input[type='checkbox'].form-check-input:checked + .form-check-label {
+  color: #616a75;
 }
 
